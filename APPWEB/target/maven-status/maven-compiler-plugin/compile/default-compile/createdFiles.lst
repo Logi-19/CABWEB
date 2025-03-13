@@ -1,0 +1,15 @@
+com\mycompany\servlet\ContactServlet.class
+com\mycompany\appweb\JakartaRestConfiguration.class
+com\mycompany\dao\ContactDAO.class
+com\mycompany\dao\DriverDAO.class
+com\mycompany\servlet\DriverServlet.class
+com\mycompany\util\DbConfig.class
+com\mycompany\model\Driver.class
+com\mycompany\servlet\VehicleServlet.class
+com\mycompany\model\Feedback.class
+com\mycompany\dao\FeedbackDAO.class
+com\mycompany\appweb\resources\JakartaEE10Resource.class
+com\mycompany\model\Vehicle.class
+com\mycompany\servlet\FeedbackServlet.class
+com\mycompany\dao\VehicleDAO.class
+com\mycompany\model\Contact.class
