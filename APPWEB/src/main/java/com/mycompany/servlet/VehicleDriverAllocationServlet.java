@@ -14,7 +14,23 @@ public class VehicleDriverAllocationServlet extends HttpServlet {
         String vehicleNo = request.getParameter("vehicleNo");
         String driverName = request.getParameter("driverName");
 
-        boolean allocated = VehicleDriverAllocationDAO.getInstance().allocateDriverToVehicle(vehicleNo, driverName);
-        response.getWriter().write(allocated ? "success" : "failure");
+        System.out.println("Received Vehicle: " + vehicleNo);
+        System.out.println("Received Driver: " + driverName);
+
+        if (vehicleNo == null || vehicleNo.isEmpty() || driverName == null || driverName.isEmpty()) {
+            response.getWriter().write("fail: missing parameters");
+            return;
+        }
+
+        boolean isAllocated = VehicleDriverAllocationDAO.getInstance().allocateDriverToVehicle(vehicleNo, driverName);
+
+        if (isAllocated) {
+            System.out.println("Allocation SUCCESS");
+            response.getWriter().write("success");
+        } else {
+            System.out.println("Allocation FAILED");
+            response.getWriter().write("fail");
+        }
     }
 }
+

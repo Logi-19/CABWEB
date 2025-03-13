@@ -5,11 +5,21 @@ import com.mycompany.util.DbConfig;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.*;
 
 public class VehicleDriverAllocationDAO {
     private static VehicleDriverAllocationDAO instance;
-    
-    private VehicleDriverAllocationDAO() {}
+    private Connection connection;
+
+    private VehicleDriverAllocationDAO() {
+        try {
+            this.connection = DbConfig.getConnection();
+            System.out.println("Database connection established successfully.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Database connection failed.");
+        }
+    }
 
     public static VehicleDriverAllocationDAO getInstance() {
         if (instance == null) {
@@ -21,59 +31,52 @@ public class VehicleDriverAllocationDAO {
     public boolean allocateDriverToVehicle(String vehicleNo, String driverName) {
         String vehicleQuery = "SELECT id, vehicleType, color, imageUrl FROM vehicles WHERE vehicleNo=?";
         String driverQuery = "SELECT id, phone, imageUrl FROM drivers WHERE name=?";
-        String checkQuery = "SELECT id FROM vehicle_driver_allocation WHERE vehicle_no=? AND driver_name=?";
-        String insertQuery = "INSERT INTO vehicle_driver_allocation (vehicle_no, vehicle_type, vehicle_color, vehicle_image, driver_name, driver_phone, driver_image) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String insertQuery = "INSERT INTO vehicle_driver_allocation (vehicle_id, vehicle_no, vehicle_type, vehicle_color, vehicle_image, driver_id, driver_name, driver_phone, driver_image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection connection = DbConfig.getConnection();
-             PreparedStatement vehicleStmt = connection.prepareStatement(vehicleQuery);
+        try (PreparedStatement vehicleStmt = connection.prepareStatement(vehicleQuery);
              PreparedStatement driverStmt = connection.prepareStatement(driverQuery)) {
 
             vehicleStmt.setString(1, vehicleNo);
-            driverStmt.setString(1, driverName);
-
             ResultSet vrs = vehicleStmt.executeQuery();
+
+            driverStmt.setString(1, driverName);
             ResultSet drs = driverStmt.executeQuery();
 
             if (vrs.next() && drs.next()) {
-                String vehicleType = vrs.getString("vehicleType");
-                String vehicleColor = vrs.getString("color");
-                String vehicleImage = vrs.getString("imageUrl");
+                int vehicleId = vrs.getInt("id");
+                int driverId = drs.getInt("id");
 
-                String driverPhone = drs.getString("phone");
-                String driverImage = drs.getString("imageUrl");
+                System.out.println("✅ Vehicle Found: ID=" + vehicleId);
+                System.out.println("✅ Driver Found: ID=" + driverId);
 
-                // Check if allocation already exists
-                try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
-                    checkStmt.setString(1, vehicleNo);
-                    checkStmt.setString(2, driverName);
-                    ResultSet checkRs = checkStmt.executeQuery();
-                    if (checkRs.next()) {
-                        System.out.println("Allocation already exists.");
-                        return false;
-                    }
-                }
-
-                // Insert allocation
                 try (PreparedStatement insertStmt = connection.prepareStatement(insertQuery)) {
-                    insertStmt.setString(1, vehicleNo);
-                    insertStmt.setString(2, vehicleType);
-                    insertStmt.setString(3, vehicleColor);
-                    insertStmt.setString(4, vehicleImage);
-                    insertStmt.setString(5, driverName);
-                    insertStmt.setString(6, driverPhone);
-                    insertStmt.setString(7, driverImage);
+                    insertStmt.setInt(1, vehicleId);
+                    insertStmt.setString(2, vehicleNo);
+                    insertStmt.setString(3, vrs.getString("vehicleType"));
+                    insertStmt.setString(4, vrs.getString("color"));
+                    insertStmt.setString(5, vrs.getString("imageUrl"));
+                    insertStmt.setInt(6, driverId);
+                    insertStmt.setString(7, driverName);
+                    insertStmt.setString(8, drs.getString("phone"));
+                    insertStmt.setString(9, drs.getString("imageUrl"));
 
                     int rows = insertStmt.executeUpdate();
-                    return rows > 0;
+                    if (rows > 0) {
+                        System.out.println("✅ Allocation saved successfully.");
+                        return true;
+                    } else {
+                        System.out.println("❌ Allocation failed.");
+                    }
                 }
             } else {
-                System.out.println("Vehicle or driver not found.");
+                System.out.println("❌ Vehicle or Driver not found. Check your database.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
     }
+
 
     public List<VehicleDriverAllocation> getAllAllocations() {
         List<VehicleDriverAllocation> allocations = new ArrayList<>();

@@ -16,6 +16,11 @@
         <div class="flex-1 p-10">
             <h1 class="text-3xl font-bold mb-5">Vehicle Driver Allocation</h1>
 
+            <!-- Selection Status -->
+            <div id="selectionStatus" class="mb-4 text-lg font-semibold text-gray-700">
+                Select a vehicle and a driver to allocate.
+            </div>
+
             <!-- Vehicle Selection -->
             <div class="mb-6">
                 <h2 class="text-xl font-semibold mb-2">Select Vehicle</h2>
@@ -24,7 +29,8 @@
                         List<Vehicle> vehicles = VehicleDAO.getInstance().getAllVehicles();
                         for (Vehicle vehicle : vehicles) { 
                     %>
-                    <div class='p-4 bg-white rounded-lg shadow-md cursor-pointer' onclick='selectVehicle("<%= vehicle.getVehicleNo() %>", "<%= vehicle.getImageUrl() %>", "<%= vehicle.getVehicleType() %>", "<%= vehicle.getColor() %>")'>
+                    <div id="vehicle_<%= vehicle.getVehicleNo() %>" class='p-4 bg-white rounded-lg shadow-md cursor-pointer hover:border-blue-500 border-2 border-transparent' 
+                         onclick='selectVehicle("<%= vehicle.getVehicleNo() %>", "<%= vehicle.getImageUrl() %>", "<%= vehicle.getVehicleType() %>", "<%= vehicle.getColor() %>")'>
                         <img src='<%= vehicle.getImageUrl() %>' class='w-full h-32 object-cover rounded-md mb-2'>
                         <p><strong><%= vehicle.getVehicleNo() %></strong></p>
                         <p><%= vehicle.getVehicleType() %> - <%= vehicle.getColor() %></p>
@@ -41,7 +47,8 @@
                         List<Driver> drivers = DriverDAO.getInstance().getAllDrivers();
                         for (Driver driver : drivers) { 
                     %>
-                    <div class='p-4 bg-white rounded-lg shadow-md cursor-pointer' onclick='selectDriver("<%= driver.getName() %>", "<%= driver.getImageUrl() %>", "<%= driver.getPhone() %>")'>
+                    <div id="driver_<%= driver.getName() %>" class='p-4 bg-white rounded-lg shadow-md cursor-pointer hover:border-green-500 border-2 border-transparent' 
+                         onclick='selectDriver("<%= driver.getName() %>", "<%= driver.getImageUrl() %>", "<%= driver.getPhone() %>")'>
                         <img src='<%= driver.getImageUrl() %>' class='w-full h-32 object-cover rounded-md mb-2'>
                         <p><strong><%= driver.getName() %></strong></p>
                         <p><%= driver.getPhone() %></p>
@@ -51,7 +58,7 @@
             </div>
 
             <!-- Allocate Button -->
-            <button id="allocateBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md">Allocate</button>
+            <button id="allocateBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md cursor-not-allowed opacity-50" disabled>Allocate</button>
 
             <!-- Allocation Table -->
             <div class="mt-10 bg-white rounded-lg shadow-md overflow-hidden">
@@ -68,7 +75,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
                         </tr>
                     </thead>
-                    <tbody id="allocationTable" class="divide-y divide-gray-200">
+                    <tbody class="divide-y divide-gray-200">
                         <% 
                             List<VehicleDriverAllocation> allocations = VehicleDriverAllocationDAO.getInstance().getAllAllocations();
                             for (VehicleDriverAllocation allocation : allocations) { 
@@ -91,26 +98,41 @@
 
     <script>
         let selectedVehicle = null;
-        let selectedVehicleImage = null;
-        let selectedVehicleType = null;
-        let selectedVehicleColor = null;
         let selectedDriver = null;
-        let selectedDriverImage = null;
-        let selectedDriverPhone = null;
 
         function selectVehicle(vehicleNo, imageUrl, vehicleType, color) {
+            if (selectedVehicle) {
+                document.getElementById("vehicle_" + selectedVehicle).classList.remove("border-blue-500");
+            }
             selectedVehicle = vehicleNo;
-            selectedVehicleImage = imageUrl;
-            selectedVehicleType = vehicleType;
-            selectedVehicleColor = color;
-            console.log("Selected Vehicle:", vehicleNo);
+            document.getElementById("vehicle_" + vehicleNo).classList.add("border-blue-500");
+
+            updateSelectionStatus();
         }
 
         function selectDriver(driverName, imageUrl, phone) {
+            if (selectedDriver) {
+                document.getElementById("driver_" + selectedDriver).classList.remove("border-green-500");
+            }
             selectedDriver = driverName;
-            selectedDriverImage = imageUrl;
-            selectedDriverPhone = phone;
-            console.log("Selected Driver:", driverName);
+            document.getElementById("driver_" + driverName).classList.add("border-green-500");
+
+            updateSelectionStatus();
+        }
+
+        function updateSelectionStatus() {
+            let status = document.getElementById("selectionStatus");
+            let allocateBtn = document.getElementById("allocateBtn");
+
+            if (selectedVehicle && selectedDriver) {
+                status.textContent = `Selected Vehicle: ${selectedVehicle} | Selected Driver: ${selectedDriver}`;
+                allocateBtn.classList.remove("cursor-not-allowed", "opacity-50");
+                allocateBtn.disabled = false;
+            } else {
+                status.textContent = "Select a vehicle and a driver to allocate.";
+                allocateBtn.classList.add("cursor-not-allowed", "opacity-50");
+                allocateBtn.disabled = true;
+            }
         }
 
         document.getElementById("allocateBtn").addEventListener("click", function() {
