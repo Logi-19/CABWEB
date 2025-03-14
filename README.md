@@ -57,10 +57,6 @@ To validate the system functionalities for both admin and customer roles.
 - Install **Apache Tomcat Server**
 - Install **MySQL Server**
 
-### **Database Setup:**
-1. Create a database `cabweb`.
-2. Import the given SQL schema to create tables.
-
 ### **Project Setup:**
 1. Clone the repository.
 2. Configure `DbConfig.java` with database credentials.
