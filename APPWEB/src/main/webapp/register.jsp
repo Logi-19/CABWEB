@@ -57,7 +57,7 @@
                         <label for="" class="block mt-3 text-sm text-gray-700 text-center font-semibold">
                             Register
                         </label>
-                        <form method="post" action="#" class="mt-10" onsubmit="return validateForm()">
+                        <form method="post" action="register" class="mt-10" onsubmit="return validateForm()">
 
                             <!-- Flex container for the form -->
                             <div class="grid grid-cols-2 gap-6">
