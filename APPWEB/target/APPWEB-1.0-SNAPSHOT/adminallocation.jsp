@@ -121,11 +121,13 @@ function selectVehicle(vehicleNo) {
             console.log("Selected Vehicle Color: " + selectedVehicleColor);
 
             if (selectedVehicle) {
-                document.getElementById("vehicle_" + selectedVehicle).classList.remove("border-blue-500");
-            }
-            document.getElementById("vehicle_" + vehicleNo).classList.add("border-blue-500");
-
-            updateSelectionStatus();
+        document.getElementById("vehicle_" + selectedVehicle).classList.remove("border-blue-500");
+    }
+    
+    selectedVehicle = vehicleNo;
+    document.getElementById("vehicle_" + selectedVehicle).classList.add("border-blue-500");
+    
+    updateSelectionStatus();
         })
         .catch(error => console.error('Error:', error));
 }
@@ -144,11 +146,13 @@ function selectDriver(driverName) {
             console.log("Selected Driver Phone: " + selectedDriverPhone);
 
             if (selectedDriver) {
-                document.getElementById("driver_" + selectedDriver).classList.remove("border-green-500");
-            }
-            document.getElementById("driver_" + driverName).classList.add("border-green-500");
-
-            updateSelectionStatus();
+        document.getElementById("driver_" + selectedDriver).classList.remove("border-green-500");
+    }
+    
+    selectedDriver = driverName;
+    document.getElementById("driver_" + selectedDriver).classList.add("border-green-500");
+    
+    updateSelectionStatus();
         })
         .catch(error => console.error('Error:', error));
 }
@@ -184,10 +188,18 @@ document.getElementById("allocateBtn").addEventListener("click", function() {
     console.log("Selected Driver Phone: " + selectedDriverPhone);
 
     fetch('VehicleDriverAllocationServlet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `vehicleNo=${selectedVehicle}&vehicleImage=${selectedVehicleImage}&vehicleType=${selectedVehicleType}&vehicleColor=${selectedVehicleColor}&driverName=${selectedDriver}&driverImage=${selectedDriverImage}&driverPhone=${selectedDriverPhone}`
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+        vehicleNo: selectedVehicle,
+        vehicleImage: selectedVehicleImage,
+        vehicleType: selectedVehicleType,
+        vehicleColor: selectedVehicleColor,
+        driverName: selectedDriver,
+        driverImage: selectedDriverImage,
+        driverPhone: selectedDriverPhone
     })
+})
     .then(response => response.text())
     .then(result => {
         if (result === "success") {

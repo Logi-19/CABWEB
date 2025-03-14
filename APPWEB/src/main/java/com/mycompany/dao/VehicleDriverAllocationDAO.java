@@ -48,12 +48,12 @@ public class VehicleDriverAllocationDAO {
 
         return rowsInserted > 0;
     } catch (SQLException e) {
-        // Debugging: Print the exception
-        System.err.println("Error saving allocation: " + e.getMessage());
+        System.err.println("SQL Error saving allocation: " + e.getMessage());
         e.printStackTrace();
         return false;
     }
 }
+
     
     // Method to fetch all allocations from the database
     public List<VehicleDriverAllocation> getAllAllocations() {
