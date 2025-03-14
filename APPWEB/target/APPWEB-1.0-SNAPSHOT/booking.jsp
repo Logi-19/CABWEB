@@ -1,35 +1,110 @@
+<%@page import="java.util.List"%>
+<%@page import="com.mycompany.model.VehicleDriverAllocation"%>
+<%@page import="com.mycompany.dao.VehicleDriverAllocationDAO"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Cab Services</title>
+    <title>Our Cab Services - Sri Lanka</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap&libraries=places" async defer></script>
     <style>
-        #map { height: 200px; width: 100%; }
         .blur-background { filter: blur(5px); pointer-events: none; }
     </style>
     <script>
-        let map, pickupMarker, dropoffMarker;
-        function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), { center: { lat: 40.712776, lng: -74.005974 }, zoom: 12 });
-            pickupMarker = new google.maps.Marker({ position: map.getCenter(), map: map, title: "Pickup Location" });
-            dropoffMarker = new google.maps.Marker({ position: map.getCenter(), map: map, title: "Drop-off Location" });
-            const pickupInput = document.getElementById('pickup-location');
-            const dropoffInput = document.getElementById('drop-location');
-            const autocompletePickup = new google.maps.places.Autocomplete(pickupInput);
-            const autocompleteDropoff = new google.maps.places.Autocomplete(dropoffInput);
-            autocompletePickup.addListener('place_changed', () => {
-                const place = autocompletePickup.getPlace();
-                if (place.geometry) { pickupMarker.setPosition(place.geometry.location); map.setCenter(place.geometry.location); }
-            });
-            autocompleteDropoff.addListener('place_changed', () => {
-                const place = autocompleteDropoff.getPlace();
-                if (place.geometry) { dropoffMarker.setPosition(place.geometry.location); map.setCenter(place.geometry.location); }
-            });
+        // Vehicle Pricing
+        const vehiclePrices = {
+            "bike": { baseFare: 150, extraFare: 40 },
+            "car": { baseFare: 250, extraFare: 60 },
+            "van": { baseFare: 350, extraFare: 80 },
+            "tuktuk": { baseFare: 100, extraFare: 30 },
+            "xl": { baseFare: 500, extraFare: 100 },
+            "luxury": { baseFare: 1000, extraFare: 200 },
+        };
+
+        // Function to geocode a place name into coordinates (focused on Sri Lanka)
+// Function to geocode a place name into coordinates (focused on Sri Lanka)
+async function geocodePlace(placeName) {
+    const url = "https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(placeName) + "&countrycodes=lk";
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log(`Geocoding response for: ${placeName}`, data); // Log the full geocoding response
+
+        if (data.length > 0) {
+            const { lat, lon } = data[0]; // Get the first result's coordinates
+            console.log(`Geocoded coordinates for ${placeName}: ${lat}, ${lon}`); // Log the valid coordinates
+            return `${lat},${lon}`; // Return coordinates in 'lat,lon' format
+        } else {
+            console.error("No matching results found for:", placeName); // Log if no results are found
+            alert("Location not found. Please try a different location.");
+            throw new Error("Place not found.");
         }
+    } catch (error) {
+        console.error("Geocoding error:", error);
+        alert("Error in geocoding. Please check the location and try again.");
+        throw error;
+    }
+}
+
+// Function to calculate distance using OSRM
+async function calculateDistance() {
+    const pickupPlace = document.getElementById('pickup-location').value;
+    const dropPlace = document.getElementById('drop-location').value;
+
+    if (!pickupPlace || !dropPlace) {
+        alert("Please enter both pickup and drop locations.");
+        return;
+    }
+
+    try {
+        // Geocode pickup and drop locations
+        const pickupCoords = await geocodePlace(pickupPlace);
+        const dropCoords = await geocodePlace(dropPlace);
+
+        // Log the coordinates to check if they are valid
+        console.log("Pickup Coordinates:", pickupCoords);
+        console.log("Drop Coordinates:", dropCoords);
+
+        // Ensure coordinates are valid before proceeding
+        if (!pickupCoords || !dropCoords || pickupCoords === "," || dropCoords === ",") {
+            alert("Invalid coordinates. Please try again.");
+            return;
+        }
+
+        // Construct OSRM URL with coordinates properly formatted
+        const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${pickupCoords};${dropCoords}?overview=false`;
+
+        // Log the OSRM URL to debug
+        console.log("OSRM URL:", osrmUrl);
+
+        // Use OSRM to calculate distance
+        const response = await fetch(osrmUrl);
+        const data = await response.json();
+
+        if (data.routes && data.routes.length > 0) {
+            const distance = data.routes[0].distance / 1000; // Convert meters to kilometers
+            document.getElementById('distance').value = distance.toFixed(2);
+            calculatePrice(distance); // Recalculate price based on distance
+        } else {
+            alert("Unable to calculate distance. Please check the locations.");
+        }
+    } catch (error) {
+        console.error("Error calculating distance:", error);
+        alert("Error calculating distance. Please ensure the locations are valid and try again.");
+    }
+}
+
+// Function to calculate price based on distance and vehicle type
+function calculatePrice(distance) {
+    const selectedVehicleType = document.getElementById('vehicle-type').value.toLowerCase();
+    const { baseFare, extraFare } = vehiclePrices[selectedVehicleType] || { baseFare: 250, extraFare: 50 };
+
+    const totalPrice = baseFare + (distance > 1 ? (distance - 1) * extraFare : 0);
+    document.getElementById('total-price').value = totalPrice.toFixed(2);
+}
+
 
         function showBooking(vehicleNo, imageUrl, color, type, driverName, driverPhone, driverImage) {
             document.getElementById('selected-vehicle').classList.remove('hidden');
@@ -43,8 +118,11 @@
             document.getElementById('driver-name').textContent = driverName;
             document.getElementById('driver-phone').textContent = driverPhone;
 
-            // Scroll to the selected vehicle section smoothly
-            document.getElementById('selected-vehicle').scrollIntoView({ behavior: 'smooth' });
+            // Populate hidden fields for form submission
+            document.getElementById('vehicle-no').value = vehicleNo;
+            document.getElementById('vehicle-type').value = type;
+            document.getElementById('driver-name').value = driverName;
+            document.getElementById('driver-phone').value = driverPhone;
         }
 
         function filterVehicles() {
@@ -69,58 +147,35 @@
             <label for="filter-type" class="block text-sm font-semibold mb-1">Filter by Vehicle Type:</label>
             <select id="filter-type" onchange="filterVehicles()" class="w-full md:w-1/3 p-2 border border-gray-300 rounded-lg">
                 <option value="all">All</option>
-                <option value="sedan">Sedan</option>
-                <option value="suv">SUV</option>
-                <option value="hatchback">Hatchback</option>
+                <option value="bike">Bike</option>
+                <option value="car">Car</option>
+                <option value="van">Van</option>
+                <option value="tuktuk">TukTuk</option>
+                <option value="xl">XL</option>
                 <option value="luxury">Luxury</option>
             </select>
         </div>
         <div id="vehicle-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Sample Vehicle 1 -->
-            <div class="bg-white p-3 shadow-md rounded-lg cursor-pointer" onclick="showBooking('ABC123', 'https://via.placeholder.com/200', 'Red', 'Sedan', 'John Doe', '123-456-7890', 'https://via.placeholder.com/40')">
-                <img src="https://via.placeholder.com/200" alt="Vehicle" class="w-full h-32 object-cover rounded-md">
-                <p class="mt-1 text-sm font-semibold">Vehicle No: ABC123</p>
-                <p class="text-xs">Color: Red</p>
-                <p class="text-xs">Type: Sedan</p>
-                <hr class="my-1">
-                <div class="flex items-center">
-                    <img src="https://via.placeholder.com/40" alt="Driver" class="w-8 h-8 rounded-full mr-2">
-                    <div>
-                        <p class="text-sm font-semibold">John Doe</p>
-                        <p class="text-xs">Phone: 123-456-7890</p>
+            <% 
+            List<VehicleDriverAllocation> allocations = VehicleDriverAllocationDAO.getInstance().getAllAllocations();
+            for (VehicleDriverAllocation allocation : allocations) { %>
+                <div class="bg-white p-3 shadow-md rounded-lg cursor-pointer" 
+                     onclick="showBooking('<%= allocation.getVehicleNo() %>', '<%= allocation.getVehicleImage() %>', '<%= allocation.getVehicleColor() %>', '<%= allocation.getVehicleType() %>', '<%= allocation.getDriverName() %>', '<%= allocation.getDriverPhone() %>', '<%= allocation.getDriverImage() %>')"
+                     data-type="<%= allocation.getVehicleType().toLowerCase() %>">
+                    <img src="<%= allocation.getVehicleImage() %>" alt="Vehicle" class="w-full h-32 object-cover rounded-md">
+                    <p class="mt-1 text-sm font-semibold">Vehicle No: <%= allocation.getVehicleNo() %></p>
+                    <p class="text-xs">Color: <%= allocation.getVehicleColor() %></p>
+                    <p class="text-xs">Type: <%= allocation.getVehicleType() %></p>
+                    <hr class="my-1">
+                    <div class="flex items-center">
+                        <img src="<%= allocation.getDriverImage() %>" alt="Driver" class="w-8 h-8 rounded-full mr-2">
+                        <div>
+                            <p class="text-sm font-semibold"><%= allocation.getDriverName() %></p>
+                            <p class="text-xs">Phone: <%= allocation.getDriverPhone() %></p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <!-- Sample Vehicle 2 -->
-            <div class="bg-white p-3 shadow-md rounded-lg cursor-pointer" onclick="showBooking('XYZ456', 'https://via.placeholder.com/200', 'Blue', 'SUV', 'Jane Smith', '987-654-3210', 'https://via.placeholder.com/40')">
-                <img src="https://via.placeholder.com/200" alt="Vehicle" class="w-full h-32 object-cover rounded-md">
-                <p class="mt-1 text-sm font-semibold">Vehicle No: XYZ456</p>
-                <p class="text-xs">Color: Blue</p>
-                <p class="text-xs">Type: SUV</p>
-                <hr class="my-1">
-                <div class="flex items-center">
-                    <img src="https://via.placeholder.com/40" alt="Driver" class="w-8 h-8 rounded-full mr-2">
-                    <div>
-                        <p class="text-sm font-semibold">Jane Smith</p>
-                        <p class="text-xs">Phone: 987-654-3210</p>
-                    </div>
-                </div>
-            </div>
-            <!-- Sample Vehicle 3 -->
-            <div class="bg-white p-3 shadow-md rounded-lg cursor-pointer" onclick="showBooking('LMN789', 'https://via.placeholder.com/200', 'Black', 'Luxury', 'Mike Johnson', '456-789-0123', 'https://via.placeholder.com/40')">
-                <img src="https://via.placeholder.com/200" alt="Vehicle" class="w-full h-32 object-cover rounded-md">
-                <p class="mt-1 text-sm font-semibold">Vehicle No: LMN789</p>
-                <p class="text-xs">Color: Black</p>
-                <p class="text-xs">Type: Luxury</p>
-                <hr class="my-1">
-                <div class="flex items-center">
-                    <img src="https://via.placeholder.com/40" alt="Driver" class="w-8 h-8 rounded-full mr-2">
-                    <div>
-                        <p class="text-sm font-semibold">Mike Johnson</p>
-                        <p class="text-xs">Phone: 456-789-0123</p>
-                    </div>
-                </div>
-            </div>
+            <% } %>
         </div>
         <div id="selected-vehicle" class="hidden mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="bg-white p-4 shadow-md rounded-lg">
@@ -143,13 +198,12 @@
                     <div><label class="block text-xs font-semibold">Name</label><input type="text" name="name" class="w-full p-2 border border-gray-300 rounded-lg" required /></div>
                     <div><label class="block text-xs font-semibold">Address</label><input type="text" name="address" class="w-full p-2 border border-gray-300 rounded-lg" required /></div>
                     <div><label class="block text-xs font-semibold">Phone Number</label><input type="tel" name="phone" class="w-full p-2 border border-gray-300 rounded-lg" required /></div>
-                    <div><label class="block text-xs font-semibold">Pickup Location</label><input type="text" id="pickup-location" name="pickup-location" class="w-full p-2 border border-gray-300 rounded-lg" required /></div>
-                    <div><label class="block text-xs font-semibold">Drop Location</label><input type="text" id="drop-location" name="drop-location" class="w-full p-2 border border-gray-300 rounded-lg" required /></div>
-                    <div><div id="map"></div></div>
-                    <div class="flex justify-between mt-3">
-                        <button type="button" class="px-4 py-2 bg-gray-500 text-white rounded-full text-sm" onclick="window.location.reload()">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-full text-sm">Confirm</button>
-                    </div>
+                    <div><label class="block text-xs font-semibold">Pickup Location (e.g., Colombo)</label><input id="pickup-location" type="text" name="pickup-location" class="w-full p-2 border border-gray-300 rounded-lg" required /></div>
+                    <div><label class="block text-xs font-semibold">Drop Location (e.g., Kandy)</label><input id="drop-location" type="text" name="drop-location" class="w-full p-2 border border-gray-300 rounded-lg" required /></div>
+                    <div><label class="block text-xs font-semibold">Distance (km)</label><input id="distance" type="text" name="distance" class="w-full p-2 border border-gray-300 rounded-lg" readonly required /></div>
+                    <div><label class="block text-xs font-semibold">Total Price</label><input id="total-price" type="text" name="total-price" class="w-full p-2 border border-gray-300 rounded-lg" readonly required /></div>
+                    <div><button type="button" onclick="calculateDistance()" class="w-full p-2 bg-blue-500 text-white rounded-lg">Calculate Distance & Price</button></div>
+                    <div><button type="submit" class="w-full p-2 bg-green-500 text-white rounded-lg">Confirm Booking</button></div>
                 </form>
             </section>
         </div>
