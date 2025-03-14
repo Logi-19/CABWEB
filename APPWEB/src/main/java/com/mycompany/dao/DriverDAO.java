@@ -144,4 +144,31 @@ public class DriverDAO {
         }
         return null;
     }
+    
+    // Method to get a driver by name
+public Driver getDriverByName(String name) {
+    String sql = "SELECT * FROM drivers WHERE name=?";
+    try (Connection conn = DbConfig.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, name);
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                Driver driver = new Driver();
+                driver.setId(rs.getInt("id"));
+                driver.setName(rs.getString("name"));
+                driver.setNic(rs.getString("nic"));
+                driver.setEmail(rs.getString("email"));
+                driver.setAddress(rs.getString("address"));
+                driver.setPhone(rs.getString("phone"));
+                driver.setLicenseNo(rs.getString("license_no"));
+                driver.setLicenseExpiredDate(rs.getDate("license_expired_date"));
+                driver.setImageUrl(rs.getString("image_url"));
+                return driver;
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
 }

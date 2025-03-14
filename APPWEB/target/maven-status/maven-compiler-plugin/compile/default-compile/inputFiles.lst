@@ -3,6 +3,7 @@ C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\servlet
 C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\dao\VehicleDriverAllocationDAO.java
 C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\model\VehicleDriverAllocation.java
 C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\dao\FeedbackDAO.java
+C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\servlet\GetVehicleDetailsServlet.java
 C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\util\DbConfig.java
 C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\servlet\ContactServlet.java
 C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\appweb\JakartaRestConfiguration.java
@@ -15,4 +16,5 @@ C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\servlet
 C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\appweb\resources\JakartaEE10Resource.java
 C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\dao\DriverDAO.java
 C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\model\Contact.java
+C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\servlet\GetDriverDetailsServlet.java
 C:\Users\ASUS\Documents\GitHub\CABWEB\APPWEB\src\main\java\com\mycompany\servlet\VehicleServlet.java

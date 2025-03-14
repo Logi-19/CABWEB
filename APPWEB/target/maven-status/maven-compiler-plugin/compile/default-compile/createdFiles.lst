@@ -4,12 +4,14 @@ com\mycompany\dao\ContactDAO.class
 com\mycompany\dao\DriverDAO.class
 com\mycompany\servlet\DriverServlet.class
 com\mycompany\util\DbConfig.class
+com\mycompany\servlet\GetVehicleDetailsServlet.class
 com\mycompany\model\Driver.class
 com\mycompany\model\VehicleDriverAllocation.class
 com\mycompany\servlet\VehicleServlet.class
 com\mycompany\model\Feedback.class
 com\mycompany\dao\FeedbackDAO.class
 com\mycompany\dao\VehicleDriverAllocationDAO.class
+com\mycompany\servlet\GetDriverDetailsServlet.class
 com\mycompany\appweb\resources\JakartaEE10Resource.class
 com\mycompany\model\Vehicle.class
 com\mycompany\servlet\FeedbackServlet.class

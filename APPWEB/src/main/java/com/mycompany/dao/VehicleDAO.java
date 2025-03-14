@@ -123,4 +123,29 @@ public class VehicleDAO {
         }
         return null;
     }
+    
+    // Method to get a vehicle by vehicle number
+public Vehicle getVehicleByNo(String vehicleNo) {
+    String sql = "SELECT * FROM vehicles WHERE vehicle_no=?";
+    try (Connection conn = DbConfig.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, vehicleNo);
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                Vehicle vehicle = new Vehicle();
+                vehicle.setId(rs.getInt("id"));
+                vehicle.setImageUrl(rs.getString("image_url"));
+                vehicle.setVehicleNo(rs.getString("vehicle_no"));
+                vehicle.setColor(rs.getString("color"));
+                vehicle.setModelYear(rs.getInt("model_year"));
+                vehicle.setVehicleType(rs.getString("vehicle_type"));
+                vehicle.setInsuranceExpired(rs.getDate("insurance_expired"));
+                return vehicle;
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
 }

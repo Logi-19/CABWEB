@@ -97,66 +97,108 @@
     </div>
 
     <script>
-        let selectedVehicle = null;
-        let selectedDriver = null;
+    let selectedVehicle = null;
+let selectedDriver = null;
+let selectedVehicleImage = null;
+let selectedVehicleType = null;
+let selectedVehicleColor = null;
+let selectedDriverImage = null;
+let selectedDriverPhone = null;
 
-        function selectVehicle(vehicleNo, imageUrl, vehicleType, color) {
+function selectVehicle(vehicleNo) {
+    fetch('GetVehicleDetailsServlet?vehicleNo=' + vehicleNo)
+        .then(response => response.json())
+        .then(data => {
+            selectedVehicle = data.vehicleNo;
+            selectedVehicleImage = data.imageUrl;
+            selectedVehicleType = data.vehicleType;
+            selectedVehicleColor = data.color;
+
+            // Debugging: Log the selected vehicle details
+            console.log("Selected Vehicle: " + selectedVehicle);
+            console.log("Selected Vehicle Image: " + selectedVehicleImage);
+            console.log("Selected Vehicle Type: " + selectedVehicleType);
+            console.log("Selected Vehicle Color: " + selectedVehicleColor);
+
             if (selectedVehicle) {
                 document.getElementById("vehicle_" + selectedVehicle).classList.remove("border-blue-500");
             }
-            selectedVehicle = vehicleNo;
             document.getElementById("vehicle_" + vehicleNo).classList.add("border-blue-500");
 
             updateSelectionStatus();
-        }
+        })
+        .catch(error => console.error('Error:', error));
+}
 
-        function selectDriver(driverName, imageUrl, phone) {
+function selectDriver(driverName) {
+    fetch('GetDriverDetailsServlet?driverName=' + driverName)
+        .then(response => response.json())
+        .then(data => {
+            selectedDriver = data.name;
+            selectedDriverImage = data.imageUrl;
+            selectedDriverPhone = data.phone;
+
+            // Debugging: Log the selected driver details
+            console.log("Selected Driver: " + selectedDriver);
+            console.log("Selected Driver Image: " + selectedDriverImage);
+            console.log("Selected Driver Phone: " + selectedDriverPhone);
+
             if (selectedDriver) {
                 document.getElementById("driver_" + selectedDriver).classList.remove("border-green-500");
             }
-            selectedDriver = driverName;
             document.getElementById("driver_" + driverName).classList.add("border-green-500");
 
             updateSelectionStatus();
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function updateSelectionStatus() {
+    let status = document.getElementById("selectionStatus");
+    let allocateBtn = document.getElementById("allocateBtn");
+
+    if (selectedVehicle && selectedDriver) {
+        status.textContent = `Selected Vehicle: ${selectedVehicle} | Selected Driver: ${selectedDriver}`;
+        allocateBtn.classList.remove("cursor-not-allowed", "opacity-50");
+        allocateBtn.disabled = false;
+    } else {
+        status.textContent = "Select a vehicle and a driver to allocate.";
+        allocateBtn.classList.add("cursor-not-allowed", "opacity-50");
+        allocateBtn.disabled = true;
+    }
+}
+
+document.getElementById("allocateBtn").addEventListener("click", function() {
+    if (!selectedVehicle || !selectedDriver) {
+        alert("Please select both a vehicle and a driver.");
+        return;
+    }
+
+    // Debugging: Log the selected values
+    console.log("Selected Vehicle: " + selectedVehicle);
+    console.log("Selected Vehicle Image: " + selectedVehicleImage);
+    console.log("Selected Vehicle Type: " + selectedVehicleType);
+    console.log("Selected Vehicle Color: " + selectedVehicleColor);
+    console.log("Selected Driver: " + selectedDriver);
+    console.log("Selected Driver Image: " + selectedDriverImage);
+    console.log("Selected Driver Phone: " + selectedDriverPhone);
+
+    fetch('VehicleDriverAllocationServlet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `vehicleNo=${selectedVehicle}&vehicleImage=${selectedVehicleImage}&vehicleType=${selectedVehicleType}&vehicleColor=${selectedVehicleColor}&driverName=${selectedDriver}&driverImage=${selectedDriverImage}&driverPhone=${selectedDriverPhone}`
+    })
+    .then(response => response.text())
+    .then(result => {
+        if (result === "success") {
+            alert("Vehicle and Driver allocated successfully!");
+            location.reload();
+        } else {
+            alert("Allocation failed. Try again.");
         }
-
-        function updateSelectionStatus() {
-            let status = document.getElementById("selectionStatus");
-            let allocateBtn = document.getElementById("allocateBtn");
-
-            if (selectedVehicle && selectedDriver) {
-                status.textContent = `Selected Vehicle: ${selectedVehicle} | Selected Driver: ${selectedDriver}`;
-                allocateBtn.classList.remove("cursor-not-allowed", "opacity-50");
-                allocateBtn.disabled = false;
-            } else {
-                status.textContent = "Select a vehicle and a driver to allocate.";
-                allocateBtn.classList.add("cursor-not-allowed", "opacity-50");
-                allocateBtn.disabled = true;
-            }
-        }
-
-        document.getElementById("allocateBtn").addEventListener("click", function() {
-            if (!selectedVehicle || !selectedDriver) {
-                alert("Please select both a vehicle and a driver.");
-                return;
-            }
-
-            fetch('VehicleDriverAllocationServlet', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `vehicleNo=${selectedVehicle}&driverName=${selectedDriver}`
-            })
-            .then(response => response.text())
-            .then(result => {
-                if (result === "success") {
-                    alert("Vehicle and Driver allocated successfully!");
-                    location.reload();
-                } else {
-                    alert("Allocation failed. Try again.");
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        });
-    </script>
+    })
+    .catch(error => console.error('Error:', error));
+});
+</script>
 </body>
 </html>
