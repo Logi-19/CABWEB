@@ -66,7 +66,7 @@ To validate the system functionalities for both admin and customer roles.
 2. Configure `DbConfig.java` with database credentials.
 3. Deploy the project on Tomcat.
 4. Access the system through:
-   - **Customer Portal:** `http://localhost:8080/APPWEB/`
+   - **Portal:** `http://localhost:8080/APPWEB/`
 
 ---
 
