@@ -71,8 +71,8 @@ To validate the system functionalities for both admin and customer roles.
 ---
 
 ## Authors
-- **Developer:** [Your Name]
+- **Developer:** Kirujan
 - **Technologies Used:** Java, JSP, Servlets, MySQL, HTML, CSS, JavaScript
 
-For any issues, contact [Your Email].
+For any issues, contact me.
 
